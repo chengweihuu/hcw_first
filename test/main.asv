@@ -1,0 +1,369 @@
+clear;clc;
+% %% 建立复杂环境
+% x=[-200:20:200]';y=[300:20:600]';z=[-200:20:400]';obst1=jianlichangfangti(x,y,z);
+% x=[-200:20:200]';y=[-600:20:-300]';z=[0:20:400]';obst2=jianlichangfangti(x,y,z);
+% x=[-200:20:200]';y=[-200:20:200]';z=[600:20:800]';obst3=jianlichangfangti(x,y,z);
+% x=[-300:20:300]';y=[-200:20:200]';z=[-600:20:-400]';obst4=jianlichangfangti(x,y,z);
+% x=[-600:20:-100]';y=[300:20:500]';z=[-300:20:-100]';obst5=jianlichangfangti(x,y,z);
+% x=[300:20:500]';y=[-100:20:100]';z=[-100:20:100]';obst6=jianlichangfangti(x,y,z);
+% obs=[obst1;obst2;obst3;obst4;obst5;obst6];
+% scatter3(obs(:,1),obs(:,2),obs(:,3),'.');
+% hold on
+% %机器人初始点位信息
+% X_home=[0,0,0,0,0,0]; %设置机器人home位的configuration
+% X_start=deg2rad([-104.4 -64.8 28.8 3.6 -7.2 36]);
+% X_goal=deg2rad([54 21.6 -32.4 -10.8 0 0]);
+% start_point=Forward_kinematic(X_start,8);
+% goal_point=Forward_kinematic(X_goal,8);
+% scatter3(start_point(1),start_point(2),start_point(3),'*','r'); hold on;
+% scatter3(goal_point(1),goal_point(2),goal_point(3),'*','g');hold on;
+% %% 创建狭小空间的地图
+% x=[-1000:20:1000]';y=[100:20:1000]';z=[-800:20:800]';obst1=jianlichangfangti(x,y,z);
+% x=[-400:20:400]';y=[100:20:1000]';z=[-400:20:400]';obst2=jianlichangfangti(x,y,z);
+% obs_jiao=intersect(obst1,obst2,'row');
+% obs_bing=union(obst1,obst2,'row');
+% obs=setdiff(obs_bing,obs_jiao,'row');
+% scatter3(obs(:,1),obs(:,2),obs(:,3),'.');
+% hold on
+% % 机器人初始点位信息
+% X_home=[0,0,0,0,0,0]; %设置机器人home位的configuration
+% X_start=deg2rad([45 0 0 0 0 0]);
+% X_goal=deg2rad([88 36 -36 -122.4 -14.4 0]);
+% X_goal=deg2rad([-104.4 -3.6 25.2 -3.6 3.6 3.6]);
+% start_point=Forward_kinematic(X_start,8);
+% goal_point=Forward_kinematic(X_goal,8);
+% scatter3(start_point(1),start_point(2),start_point(3),'*','r'); hold on;
+% scatter3(goal_point(1),goal_point(2),goal_point(3),'*','g');hold on;
+% %% 创建c字形地图
+% x=[-1000:20:500]';y=[200:20:900]';z=[-800:20:800]';obst1=jianlichangfangti(x,y,z);
+% x=[-1000:20:200]';y=[200:20:900]';z=[-300:20:300]';obst2=jianlichangfangti(x,y,z);
+% obs_jiao=intersect(obst1,obst2,'row');
+% obs_bing=union(obst1,obst2,'row');
+% obs=setdiff(obs_bing,obs_jiao,'row');
+% scatter3(obs(:,1),obs(:,2),obs(:,3),'.');
+% hold on
+% %% 机器人初始点位信息
+% X_home=[0,0,0,0,0,0]; %设置机器人home位的configuration
+% X_start=deg2rad([-90 0 0 0 0 0]);
+% X_goal=deg2rad([3.6 -172 -50.4 0 0 0]);
+% start_point=Forward_kinematic(X_start,8);
+% goal_point=Forward_kinematic(X_goal,8);
+% scatter3(start_point(1),start_point(2),start_point(3),'*','r'); hold on;
+% scatter3(goal_point(1),goal_point(2),goal_point(3),'*','g');hold on;
+%% 导入wyw的obs
+load wyw_obs.mat
+scatter3(obs(:,1),obs(:,2),obs(:,3),'.');
+hold on
+%% 机器人初始点位信息
+X_home=[0,0,0,0,0,0]; %设置机器人home位的configuration
+X_start=deg2rad([12.88,-74.68,46.91,-150.99,-12.88,-1.17]);
+X_goal=deg2rad([11.63,-65.03,98.75,147.4300,-11.66,-1.2]);
+start_point=Forward_kinematic(X_start,8);
+goal_point=Forward_kinematic(X_goal,8);
+scatter3(start_point(1),start_point(2),start_point(3),'*','r'); hold on;
+scatter3(goal_point(1),goal_point(2),goal_point(3),'*','g');hold on;
+%% 建立机器人模型
+%       theta     d           a        alpha     offset
+L1=Link([pi/2     89.2        0         pi/2       0     ]); %定义连杆的D-H参数
+L2=Link([-pi/2    0        -425            0       0     ]);
+L3=Link([0        0        -392            0       0     ]);
+L4=Link([0        109.3       0         pi/2       0     ]);
+L5=Link([0        94.75       0        -pi/2       0     ]);
+L6=Link([0        82.5        0            0       0     ]);
+robot=SerialLink([L1 L2 L3 L4 L5 L6],'name','FANUC 200iB/125L'); %连接连杆，机器人取名manji
+
+%% 为每一个关节设置旋转角度限制
+l1u = 180.0;l1d = -180.0;
+l2u = 180.0;l2d = -180.0;
+l3u = 180.0;l3d = -180.0;
+l4u = 180.0;l4d = -180.0;
+l5u = 180.0;l5d = -180.0;
+l6u = 360.0;l6d = -360.0;
+robot.teach;
+
+%% 让机器人从工位回到出发点
+jbar=20;
+q0=zeros(jbar,6);
+q0(:,1)=linspace(X_home(1),X_start(1),jbar)';
+q0(:,2)=linspace(X_home(2),X_start(2),jbar)';
+q0(:,3)=linspace(X_home(3),X_start(3),jbar)';
+q0(:,4)=linspace(X_home(4),X_start(4),jbar)';
+q0(:,5)=linspace(X_home(5),X_start(5),jbar)';
+q0(:,6)=linspace(X_home(6),X_start(6),jbar)';
+robot.plot(q0); 
+hold on;
+xlabel('x轴');ylabel('y轴');zlabel('z轴'); %添加坐标轴
+hold on;
+%% 代表8个象限的随机选择
+Interval1=[1 1 1 1 1 1 1 1;1/8 1/8 1/8 1/8 1/8 1/8 1/8 1/8];
+Interval1(3,1)=Interval1(2,1);
+for i= 2:size(Interval1,2)
+    Interval1(3,i)=Interval1(3,i-1)+Interval1(2,i);
+end
+
+Interval2=[1 1 1 1 1 1 1 1;1/8 1/8 1/8 1/8 1/8 1/8 1/8 1/8];
+Interval2(3,1)=Interval2(2,1);
+for i= 2:size(Interval2,2)
+    Interval2(3,i)=Interval2(3,i-1)+Interval2(2,i);
+end
+%% rrt-connect
+% 建立Tree的基本信息
+Start2Goal_cost = theta2distance(X_start,X_goal);
+Tree1.v=[];Tree2.v=[];
+Tree1.v(1).theta1 = X_start(1); Tree1.v(1).theta2 = X_start(2); Tree1.v(1).theta3 = X_start(3); 
+Tree1.v(1).theta4 = X_start(4); Tree1.v(1).theta5 = X_start(5); Tree1.v(1).theta6 = X_start(6);
+Tree1.v(1).theta1Prev =X_start(1); Tree1.v(1).theta2Prev =X_start(2); Tree1.v(1).theta3Prev =X_start(3);
+Tree1.v(1).theta4Prev =X_start(4); Tree1.v(1).theta5Prev =X_start(5); Tree1.v(1).theta6Prev =X_start(6);
+Tree1.v(1).dist = 0;            % 从父节点到该节点的距离，这里可取欧氏距离
+Tree1.v(1).indPrev = 0;         % 父节点的索引
+count1 = 0;
+Tree1.v(1).HaveSon = 0;         % 该节点有几个子节点
+Tree1.v(1).goal_cost = Start2Goal_cost;
+Tree1.v(1).grad = 0;            % 每个点到goal-cost的梯度
+Tree1.v(1).Ban = 0;             % Ban=1表示该点不扩展了，以后不遍历了
+Tree1.v(1).Quadrant = 0;        % 选择了哪个采样方向
+% --------------------------------------------------------------------------------------------------------------
+Tree2.v(1).theta1 = X_goal(1); Tree2.v(1).theta2 = X_goal(2); Tree2.v(1).theta3 = X_goal(3); 
+Tree2.v(1).theta4 = X_goal(4); Tree2.v(1).theta5 = X_goal(5); Tree2.v(1).theta6 = X_goal(6);
+Tree2.v(1).theta1Prev =X_goal(1); Tree2.v(1).theta2Prev =X_goal(2); Tree2.v(1).theta3Prev =X_goal(3);
+Tree2.v(1).theta4Prev =X_goal(4); Tree2.v(1).theta5Prev =X_goal(5); Tree2.v(1).theta6Prev =X_goal(6);
+Tree2.v(1).dist = 0;            % 从父节点到该节点的距离，这里可取欧氏距离
+Tree2.v(1).indPrev = 0;         % 父节点的索引
+count2 = 0;
+Tree2.v(1).HaveSon = 0;
+Tree2.v(1).goal_cost = Start2Goal_cost;
+Tree2.v(1).grad = 0;            % 每个点到goal-cost的梯度
+Tree2.v(1).Ban = 0;
+Tree2.v(1).Quadrant = 0;        % 选择了哪个采样方向
+
+step1=0.01 ;                    % 1.6度
+step2=0.01 ;
+HaveSonThr = 8 ;                % 最多能拥有子节点个数
+tree1ExpansionFail=false;       % sets to true if expansion after set number of attempts fails
+tree2ExpansionFail=false;       % 如果在设定的尝试次数后扩张失败，则设置为真
+
+tic
+
+while ~tree1ExpansionFail || ~tree2ExpansionFail  % 【需要优化，tree1ExpansionFail迭代停止的条件】
+    if ~tree1ExpansionFail 
+        [Tree1,count1,Tree1Expansionflag,Tree2num,step1,Interval1]=...
+            Cspace_BiRRT(X_start,X_goal,Tree1,Tree2,obs,count1,step1,Interval1); 
+        % Step  遍历每棵树的过程中找到HaveSon>5的节点，将这些节点存储起来到
+        % 是不是没必要遍历一个点就一次for
+        for i =1:size(Tree1.v,2)
+            if (Tree1.v(i).Ban == 0 && Tree1.v(i).HaveSon == HaveSonThr) && (Tree1.v(i).Ban == 0 && Tree1.v(i).grad > 0.2)
+                Tree1.v(i).Ban = 1;
+                % 把这个点在图中表示
+                ABCDE=[Tree1.v(i).theta1,Tree1.v(i).theta2,Tree1.v(i).theta3,...
+                    Tree1.v(i).theta4,Tree1.v(i).theta5,Tree1.v(i).theta6];
+                ABCDE_xyz=Forward_kinematic(ABCDE,8);
+                scatter3(ABCDE_xyz(1),ABCDE_xyz(2),ABCDE_xyz(3),250,'.','black');
+            end
+        end
+        % Step  将得到的新节点和父节点连线，在图上显示出来
+        figure(1)
+        s_theta = [Tree1.v(end).theta1,Tree1.v(end).theta2,Tree1.v(end).theta3,Tree1.v(end).theta4,Tree1.v(end).theta5,Tree1.v(end).theta6]; %得到子节点
+        p_theta = [Tree1.v(end).theta1Prev,Tree1.v(end).theta2Prev,Tree1.v(end).theta3Prev,Tree1.v(end).theta4Prev,Tree1.v(end).theta5Prev,Tree1.v(end).theta6Prev];
+        s_xyz=Forward_kinematic(s_theta,8);
+        p_xyz=Forward_kinematic(p_theta,8);
+        plot3([p_xyz(1),s_xyz(1)],[p_xyz(2),s_xyz(2)],[p_xyz(3),s_xyz(3)],'LineWidth',1,'color','green') ;grid on;%【画轨迹】
+    end
+    if Tree1Expansionflag
+        break;
+    end
+    if ~tree2ExpansionFail
+        [Tree2,count2,Tree2Expansionflag,Tree1num,step2,Interval2]=...
+        Cspace_BiRRT(X_goal,X_start,Tree2,Tree1,obs,count2,step2,Interval2); % RRT 1 expands from goal towards source
+        % Step  遍历每棵树的过程中找到HaveSon>5的节点，将这些节点存储起来到[]
+        for i =1:size(Tree2.v,2)
+            if (Tree2.v(i).Ban == 0 && Tree2.v(i).HaveSon == HaveSonThr) && (Tree2.v(i).Ban == 0 && Tree2.v(i).grad > 0.2)
+                Tree2.v(i).Ban = 1;
+                % 把这个点在图中表示
+                ABCDE=[Tree2.v(i).theta1,Tree2.v(i).theta2,Tree2.v(i).theta3,...
+                    Tree2.v(i).theta4,Tree2.v(i).theta5,Tree2.v(i).theta6];
+                ABCDE_xyz=Forward_kinematic(ABCDE,8);
+                scatter3(ABCDE_xyz(1),ABCDE_xyz(2),ABCDE_xyz(3),250,'.','black');
+            end
+        end
+        % Step  将得到的新节点和父节点连线，在图上显示出来
+        figure(1)
+        s_theta = [Tree2.v(end).theta1,Tree2.v(end).theta2,Tree2.v(end).theta3,Tree2.v(end).theta4,Tree2.v(end).theta5,Tree2.v(end).theta6]; %得到子节点
+        p_theta = [Tree2.v(end).theta1Prev,Tree2.v(end).theta2Prev,Tree2.v(end).theta3Prev,Tree2.v(end).theta4Prev,Tree2.v(end).theta5Prev,Tree2.v(end).theta6Prev];
+        s_xyz=Forward_kinematic(s_theta,8);
+        p_xyz=Forward_kinematic(p_theta,8);
+        plot3([p_xyz(1),s_xyz(1)],[p_xyz(2),s_xyz(2)],[p_xyz(3),s_xyz(3)],'LineWidth',1,'color','red') ;grid on;%【画轨迹】
+    end
+    if Tree2Expansionflag
+        break;
+    end
+end
+%% 通过两个Tree，得出q ,Tree1Expansionflag
+% 反向路径的倒数第一个坐标为RRT 采样的最后一个节点
+if Tree1Expansionflag
+    path1.pos(1).theta1 = Tree2.v(Tree2num).theta1 ; path1.pos(1).theta2 = Tree2.v(Tree2num).theta2 ; 
+    path1.pos(1).theta3 = Tree2.v(Tree2num).theta3 ; path1.pos(1).theta4 = Tree2.v(Tree2num).theta4 ;
+    path1.pos(1).theta5 = Tree2.v(Tree2num).theta5 ; path1.pos(1).theta6 = Tree2.v(Tree2num).theta6 ;
+    % RRT 最后一个采样点的父节点索引
+    pathIndex = Tree2.v(Tree2num).indPrev ;
+    j=0;
+    % 沿终点回溯到起点
+    while 1
+        path1.pos(j + 2).theta1 = Tree2.v(pathIndex).theta1 ; path1.pos(j + 2).theta2 = Tree2.v(pathIndex).theta2;
+        path1.pos(j + 2).theta3 = Tree2.v(pathIndex).theta3 ; path1.pos(j + 2).theta4 = Tree2.v(pathIndex).theta4;
+        path1.pos(j + 2).theta5 = Tree2.v(pathIndex).theta5 ; path1.pos(j + 2).theta6 = Tree2.v(pathIndex).theta6;
+        % 不断回溯父节点索引
+        pathIndex = Tree2.v(pathIndex).indPrev;
+        % 回溯到第一个节点就退出
+        if pathIndex == 1
+            break
+        end
+        j = j + 1;
+    end
+    j = j + 1;
+    % 路径的最后一个坐标为 x_goal
+    path1.pos(j+2).theta1 = X_goal(1);path1.pos(j+2).theta2 = X_goal(2);path1.pos(j+2).theta3 = X_goal(3);
+    path1.pos(j+2).theta4 = X_goal(4);path1.pos(j+2).theta5 = X_goal(5);path1.pos(j+2).theta6 = X_goal(6);
+    %------------------------------------------------------------------------------------------------------------
+    j=1;
+    % 正向路径的倒数第一个坐标为 RRT 采样的最后一个节点坐标
+    path2.pos(1).theta1 = Tree1.v(end).theta1; path2.pos(1).theta2 = Tree1.v(end).theta2;
+    path2.pos(1).theta3 = Tree1.v(end).theta3; path2.pos(1).theta4 = Tree1.v(end).theta4;
+    path2.pos(1).theta5 = Tree1.v(end).theta5; path2.pos(1).theta6 = Tree1.v(end).theta6;
+    % RRT 最后一个采样点的父节点索引
+    pathIndex = Tree1.v(end).indPrev;
+    % 沿终点回溯到起点
+    while 1
+        path2.pos(j + 1).theta1 = Tree1.v(pathIndex).theta1;path2.pos(j + 1).theta2 = Tree1.v(pathIndex).theta2;
+        path2.pos(j + 1).theta3 = Tree1.v(pathIndex).theta3;path2.pos(j + 1).theta4 = Tree1.v(pathIndex).theta4;
+        path2.pos(j + 1).theta5 = Tree1.v(pathIndex).theta5;path2.pos(j + 1).theta6 = Tree1.v(pathIndex).theta6;
+        % 不断回溯父节点索引
+        pathIndex = Tree1.v(pathIndex).indPrev;
+        % 回溯到第一个节点就退出
+        if pathIndex == 1
+            break
+        end
+        j = j + 1;
+    end
+    % 起点加入路径
+    path2.pos(end).theta1 = X_start(1); path2.pos(end).theta2 = X_start(2); path2.pos(end).theta3 = X_start(3);
+    path2.pos(end).theta4 = X_start(4); path2.pos(end).theta5 = X_start(5); path2.pos(end).theta6 = X_start(6);
+end 
+if Tree2Expansionflag
+    path1.pos(1).theta1 = Tree2.v(end).theta1 ; path1.pos(1).theta2 = Tree2.v(end).theta2 ; 
+    path1.pos(1).theta3 = Tree2.v(end).theta3 ; path1.pos(1).theta4 = Tree2.v(end).theta4 ; 
+    path1.pos(1).theta5 = Tree2.v(end).theta5 ; path1.pos(1).theta6 = Tree2.v(end).theta6 ;
+    % RRT 最后一个采样点的父节点索引
+    pathIndex = Tree2.v(end).indPrev ;
+    j=0;
+    % 沿终点回溯到起点
+    while 1
+        path1.pos(j + 2).theta1 = Tree2.v(pathIndex).theta1 ; path1.pos(j + 2).theta2 = Tree2.v(pathIndex).theta2;
+        path1.pos(j + 2).theta3 = Tree2.v(pathIndex).theta3 ; path1.pos(j + 2).theta4 = Tree2.v(pathIndex).theta4;
+        path1.pos(j + 2).theta5 = Tree2.v(pathIndex).theta5 ; path1.pos(j + 2).theta6 = Tree2.v(pathIndex).theta6;
+        % 不断回溯父节点索引
+        pathIndex = Tree2.v(pathIndex).indPrev;
+        % 回溯到第一个节点就退出
+        if pathIndex == 1
+            break
+        end
+        j = j + 1;
+    end
+    j = j + 1;
+    % 路径的最后一个坐标为 x_goal
+    path1.pos(j+2).theta1 = X_goal(1);path1.pos(j+2).theta2 = X_goal(2);path1.pos(j+2).theta3 = X_goal(3);
+    path1.pos(j+2).theta4 = X_goal(4);path1.pos(j+2).theta5 = X_goal(5);path1.pos(j+2).theta6 = X_goal(6);
+    %------------------------------------------------------------------------------------------------------------
+    j=1;
+    % 正向路径的倒数第一个坐标为 RRT 采样的最后一个节点坐标
+    path2.pos(1).theta1 = Tree1.v(Tree2num).theta1; path2.pos(1).theta2 = Tree1.v(Tree2num).theta2; path2.pos(1).theta3 = Tree1.v(Tree2num).theta3;
+    path2.pos(1).theta4 = Tree1.v(Tree2num).theta4; path2.pos(1).theta5 = Tree1.v(Tree2num).theta5; path2.pos(1).theta6 = Tree1.v(Tree2num).theta6;
+    % RRT 最后一个采样点的父节点索引
+    pathIndex = Tree1.v(Tree2num).indPrev;
+    % 沿终点回溯到起点
+    while 1
+        path2.pos(j + 1).theta1 = Tree1.v(pathIndex).theta1;path2.pos(j + 1).theta2 = Tree1.v(pathIndex).theta2;
+        path2.pos(j + 1).theta3 = Tree1.v(pathIndex).theta3;path2.pos(j + 1).theta4 = Tree1.v(pathIndex).theta4;
+        path2.pos(j + 1).theta5 = Tree1.v(pathIndex).theta5;path2.pos(j + 1).theta6 = Tree1.v(pathIndex).theta6;
+        % 不断回溯父节点索引
+        pathIndex = Tree1.v(pathIndex).indPrev;
+        % 回溯到第一个节点就退出
+        if pathIndex == 1
+            break
+        end
+        j = j + 1;
+    end
+    % 起点加入路径
+    path2.pos(end).theta1 = X_start(1); path2.pos(end).theta2 = X_start(2); path2.pos(end).theta3 = X_start(3);
+    path2.pos(end).theta4 = X_start(4); path2.pos(end).theta5 = X_start(5); path2.pos(end).theta6 = X_start(6);
+end 
+
+
+%% 把path加入q
+q=[];
+for i =size(path2.pos,2):-1:1
+    q=[q;path2.pos(i).theta1,path2.pos(i).theta2,path2.pos(i).theta3,path2.pos(i).theta4,path2.pos(i).theta5,path2.pos(i).theta6];
+end
+for i =1:size(path1.pos,2)
+    q=[q;path1.pos(i).theta1,path1.pos(i).theta2,path1.pos(i).theta3,path1.pos(i).theta4,path1.pos(i).theta5,path1.pos(i).theta6];
+end
+%% GetKeyPoint,输入为q
+q_final=[];
+i=1;j=3;
+q_final=[q_final;q(i,:)];
+while j <= size(q,1)
+    [q0,~] = jtraj(q(i,:),q(j,:),10);
+    flag_collision=0;
+    for k=1:size(q0,1)
+        if CollisionCheck_3(q0(k,1:6),obs) == 1 % 如果碰撞，就下一个i，不碰撞就下一个j
+            flag_collision=1; % 碰撞标志
+        end
+    end
+    if flag_collision == 1
+        i=j-1;
+        j=i+2;
+        q_final=[q_final;q(i,:)];
+    else
+        j=j+1;
+    end
+end
+q_final=[q_final;q(end,:)];
+
+toc
+%% 动画演示
+figure(1)
+% robot.plot(q(:,1:6));
+T = robot.fkine(q(:,1:6)); %得到笛卡尔轨迹
+p = transl(T);%进行齐次变换轨迹的位移部分
+plot3(p(:,1),p(:,2),p(:,3),'LineWidth',0.5,'color','b') ;grid on;%【画轨迹】
+xlabel('X轴(mm)');ylabel('Y轴(mm)');zlabel('Z轴（mm）');
+hold on
+          
+%% 动画演示
+% 多图显示
+figure(1)  
+robot.plot(q_final(:,1:6));
+T = robot.fkine(q_final(:,1:6)); %得到笛卡尔轨迹
+p = transl(T);%进行齐次变换轨迹的位移部分
+plot3(p(:,1),p(:,2),p(:,3),'LineWidth',2,'color','y') ;grid on;%【画轨迹】
+xlabel('X轴(mm)');ylabel('Y轴(mm)');zlabel('Z轴（mm）');
+hold on
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
